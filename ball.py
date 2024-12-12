@@ -41,12 +41,25 @@ class ball():
         
         return False
     
+    def paddle_hit(self,paddle):
+        if (self.size + (paddle.width/2) >= self.distance_paddle(paddle)) and self.team != paddle.team:
+            print(self.size + (paddle.width/2), self.distance_paddle(paddle))
+            print(self)
+            return True
+        return False
+    
     def distance(self, that):
         x1 = self.x
         y1 = self.y
         x2 = that.x
         y2 = that.y
         d = math.sqrt((y2-y1)**2 + (x2-x1)**2)
+        return d
+    
+    def distance_paddle(self, paddle):
+        y1 = self.y
+        y2 = paddle.location[1]
+        d = abs(y2-y1)
         return d
 
     def ball_hit(self, that):

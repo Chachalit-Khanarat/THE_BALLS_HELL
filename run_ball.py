@@ -42,7 +42,7 @@ class border():
             turtle.left(90)
             turtle.forward(2*self.canvas_height)
             turtle.left(90)
-    
+
     def draw_line(self):
         turtle.pensize(2)
         turtle.penup()
@@ -71,19 +71,23 @@ class run():
         Kendo = turtle.Turtle()
         self.my_paddle = paddle.Paddle(50, 50, (0,200,255), Jimmy, "b")
         self.my_paddle.set_location([0, -350])
-        self.en_paddle = paddle.Paddle(50, 50, (255,100,0), Kendo, "r", -90)
+        self.en_paddle = paddle.Paddle(50, 50, (255,100,0), Kendo, "r", head=-90)
         self.en_paddle.set_location([0, 350])
         self.screen = turtle.Screen()
-    
+        self.plist = [self.my_paddle,self.en_paddle]
+
     def draw(self):
         for i in self.ballset.ball:
             i.draw_ball() 
             i.wall_hit(self.border.canvas_width,self.border.canvas_height)
+            i.move_ball(self.dt)
             if i.bhp <= 0:
                 self.ballset.ball.pop(self.ballset.ball.index(i))
-            i.move_ball(self.dt)
-        self.my_paddle.draw()
-        self.en_paddle.draw()
+    
+    def draw_paddle(self):
+        for i in self.plist:
+            if i.bhp > 0:
+                i.draw()
 
     def ball_ball_hit(self):
         for i in self.ballset.ball:
@@ -91,9 +95,6 @@ class run():
                 if i == j:
                     continue
                 if i.ball_hit(j):
-                    print(i)
-                    print(j)
-                    # print("hit")
                     if j.bhp - i.bhp <= 0 and i.bhp - j.bhp <= 0:
                         self.ballset.ball.pop(self.ballset.ball.index(i))
                         self.ballset.ball.pop(self.ballset.ball.index(j))
@@ -104,6 +105,22 @@ class run():
                         self.ballset.ball.pop(self.ballset.ball.index(j))
                         i.bhp -= j.bhp
                     break
+
+    def ball_paddle_hit(self):
+        for i in self.ballset.ball:
+            if i.paddle_hit(self.my_paddle):
+                self.ballset.ball.pop(self.ballset.ball.index(i))
+                self.my_paddle.bhp -= i.bhp
+            elif i.paddle_hit(self.en_paddle):
+                self.ballset.ball.pop(self.ballset.ball.index(i))
+                self.en_paddle.bhp -= i.bhp
+
+        if self.my_paddle.bhp <= 0:
+            return self.en_paddle
+        if self.en_paddle.bhp <= 0:
+            return self.my_paddle
+        
+        return None
 
     # move_left and move_right handlers update paddle positions
     def move_left(self,pad):
@@ -134,6 +151,7 @@ class run():
         self.border.draw_line()
         self.border.draw_border()
         self.draw()
+        self.draw_paddle()
         self.ball_ball_hit()
         turtle.update()
     
@@ -155,6 +173,9 @@ class run():
             try:
                 if abs(start1 - end) >= 1/120:
                     self.run()
+                    t = self.ball_paddle_hit()
+                    if t:
+                        break
                     self.frame += 1
                     if abs(start2 - end) >= 1:
                         print(self.frame)
@@ -163,8 +184,8 @@ class run():
                     start1 = time.time()
             except TypeError:
                 print("error")
+        print(t)
         turtle.done()
-
 
 
 # num_balls = int(input("Number of balls to simulate: "))
