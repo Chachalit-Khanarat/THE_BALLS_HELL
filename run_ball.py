@@ -5,25 +5,12 @@ import math
 import time
 import paddle
 import threading
+import socket
 
 class balldb():
     def __init__(self):
         self.ball = []
         self.border = border()
-
-    def create(self, ball_num):
-        b = border()
-        for i in range(ball_num):
-            # size = random.uniform(0.01, 0.1) * b.canvas_width
-            size = 0.05 * b.canvas_width
-            x = random.randrange(-250,300,50)
-            y = int(b.canvas_height - size - 20)
-            vx = 0
-            vy = (5*random.uniform(-1.0, 0.1))
-            ball_color = ((255,0,0))
-            mass =  (4/3) * math.pi * (size**3) * 2
-            tball = ball.ball(x=x, y=y, vx=vx, vy=vy, size=size, color=ball_color, mass=mass,team="r")
-            self.ball.append(tball)
 
 class border():
     def __init__(self):
@@ -63,7 +50,6 @@ class run():
         turtle.colormode(255)
         self.num = num_ball
         self.ballset =  balldb()
-        self.ballset.create(self.num)
         self.dt = 0.5
         self.border = border()
         self.frame = 0
@@ -119,13 +105,61 @@ class run():
             return self.en_paddle
         if self.en_paddle.bhp <= 0:
             return self.my_paddle
-        
-        return None
+
+    def hosting(self):
+        host = '192.168.1.101' #Server ip
+        port = 25555
+
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s.setblocking(False)
+        try:
+            self.s.bind((host, port))
+        except OSError:
+            print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
+        print("Server Started")
+
+    def desition(self,data,addr):
+        if data == "d":
+            self.move_left(self.en_paddle)
+        elif data == "a":
+            self.move_right(self.en_paddle)
+        elif data == "s":
+            self.fire(self.en_paddle,-1,"r",(255,20,20))
+        elif data == "w":
+            self.fire2(self.en_paddle,-1,"r",(255,20,20))
+
+    def recv(self):
+        while True:
+            try:
+                data, addr = self.s.recvfrom(1024)
+                self.addr = addr
+            except BlockingIOError:
+                continue
+            print(data)
+            data = data.decode('utf-8')
+            print("From connected user: " + data)
+            self.desition(data,addr)
+
+    def turtle_key_my(self):
+            self.screen.listen()
+            self.screen.onkey(lambda : self.move_left(self.my_paddle), "a")
+            self.screen.onkey(lambda :self.move_right(self.my_paddle), "d")
+            self.screen.onkey(lambda :self.fire(self.my_paddle,1,"b",(0,255,200)), "s")
+            self.screen.onkey(lambda :self.fire2(self.my_paddle,1,"b",(0,255,200)), "w")
+            self.screen.onkey(self.recv, " ")
+    
+    def turtle_key_en(self):
+            self.screen.onkey(lambda :self.move_left(self.en_paddle), "Left")
+            self.screen.onkey(lambda :self.move_right(self.en_paddle), "Right")
+            self.screen.onkey(lambda :self.fire(self.en_paddle,-1,"r",(255,20,20)), "Down")
+            self.screen.onkey(lambda :self.fire2(self.en_paddle,-1,"r",(255,20,20)), "Up")
+
 
     # move_left and move_right handlers update paddle positions
     def move_left(self,pad):
         if (pad.location[0] - pad.width/2 - 50) >= -self.border.canvas_width:
             pad.set_location([pad.location[0] - 50, pad.location[1]])
+        self.s.sendto("a".encode("utf-8"), self.addr)
 
     # move_left and move_right handlers update paddle positions
     def move_right(self,pad):
@@ -156,15 +190,8 @@ class run():
         turtle.update()
     
     def run_fps_cap(self):
-        self.screen.listen()
-        self.screen.onkey(lambda : self.move_left(self.my_paddle), "a")
-        self.screen.onkey(lambda :self.move_right(self.my_paddle), "d")
-        self.screen.onkey(lambda :self.fire(self.my_paddle,1,"b",(0,255,200)), "s")
-        self.screen.onkey(lambda :self.fire2(self.my_paddle,1,"b",(0,255,200)), "w")
-        self.screen.onkey(lambda :self.move_left(self.en_paddle), "Left")
-        self.screen.onkey(lambda :self.move_right(self.en_paddle), "Right")
-        self.screen.onkey(lambda :self.fire(self.en_paddle,-1,"r",(255,20,20)), "Down")
-        self.screen.onkey(lambda :self.fire2(self.en_paddle,-1,"r",(255,20,20)), "Up")
+        self.hosting()
+        self.turtle_key_my()
         start1 = time.time()
         start2 = time.time()
         print(self.border.canvas_height, self.border.canvas_width)
@@ -184,14 +211,19 @@ class run():
                     start1 = time.time()
             except TypeError:
                 print("error")
-        print(t)
+            # if threading.active_count() < 2:
+            #     net = threading.Thread(target=self.recv)
+            #     net.start()
+        turtle.clear()
+        self.my_paddle.clear()
+        self.en_paddle.clear()
+        turtle.goto(0,-150)
+        turtle.write(f"{t} ! WIN !",font=("Arial", 100, "normal"),align="center")
         turtle.done()
-
+        c.close()
 
 # num_balls = int(input("Number of balls to simulate: "))
 num_balls = 0
 st = run(num_balls)
 st.run_fps_cap()
-
-# hold the window; close it by clicking the window close 'x' mark
 

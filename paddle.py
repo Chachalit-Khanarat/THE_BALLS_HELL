@@ -1,5 +1,5 @@
 class Paddle:
-    def __init__(self, width, height, color, my_turtle, team, bhp = 50, head=0):
+    def __init__(self, width, height, color, my_turtle, team, bhp = 10, head=0):
         self.width = width
         self.height = height
         self.location = [0, 0]
@@ -37,4 +37,4 @@ class Paddle:
         self.my_turtle.clear()
 
     def __repr__(self):
-        return f"team : {self.team}"
+        return f"Team : {(self.team).upper()}"

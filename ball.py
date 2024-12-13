@@ -57,9 +57,11 @@ class ball():
         return d
     
     def distance_paddle(self, paddle):
+        x1 = self.x
         y1 = self.y
+        x2 = paddle.location[0]
         y2 = paddle.location[1]
-        d = abs(y2-y1)
+        d = math.sqrt((y2-y1)**2 + (x2-x1)**2)
         return d
 
     def ball_hit(self, that):
