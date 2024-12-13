@@ -107,13 +107,13 @@ class run():
             return self.my_paddle
 
     def hosting(self):
-        host = '192.168.1.101' #Server ip
-        port = 25555
+        self.host = '192.168.1.101' #Server ip
+        self.port = 25555
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.setblocking(False)
         try:
-            self.s.bind((host, port))
+            self.s.bind((self.host, self.port))
         except OSError:
             print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
         print("Server Started")
@@ -129,16 +129,15 @@ class run():
             self.fire2(self.en_paddle,-1,"r",(255,20,20))
 
     def recv(self):
-        while True:
-            try:
-                data, addr = self.s.recvfrom(1024)
-                self.addr = addr
-            except BlockingIOError:
-                continue
-            print(data)
-            data = data.decode('utf-8')
-            print("From connected user: " + data)
-            self.desition(data,addr)
+        try:
+            data, addr = self.s.recvfrom(1024)
+            self.addr = addr
+        except BlockingIOError:
+            return
+        print(data)
+        data = data.decode('utf-8')
+        print("From connected user: " + data)
+        self.desition(data,addr)
 
     def turtle_key_my(self):
             self.screen.listen()
@@ -211,6 +210,7 @@ class run():
                     start1 = time.time()
             except TypeError:
                 print("error")
+            self.recv()
             # if threading.active_count() < 2:
             #     net = threading.Thread(target=self.recv)
             #     net.start()
