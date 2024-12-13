@@ -124,19 +124,19 @@ class run():
             self.fire(self.en_paddle,-1,"r",(255,20,20))
         elif data == "w":
             self.fire2(self.en_paddle,-1,"r",(255,20,20))
+        self.data = 0
 
     def recv(self):
         try:
-            data, addr = self.s.recvfrom(1024)
-            self.addr = addr
-            print(addr)
+            self.data, self.addr = self.s.recvfrom(1024)
+            print(self.addr)
         except BlockingIOError:
-            data = 0
+            self.data = 0
             return
-        print(data)
-        data = data.decode('utf-8')
-        print("From connected user: " + data)
-        self.desition(data,addr)
+        print(self.data)
+        self.data = self.data.decode('utf-8')
+        print("From connected user: " + self.data)
+        self.desition(self.data,self.addr)
 
     def turtle_key_my(self):
             self.screen.listen()
@@ -235,6 +235,7 @@ if q1 == "1":
     st.port = int(input("port : "))
     st.connecting()
     st.wait_player()
+
 elif q1 == "2":
     st.host = "192.168.1.106"
     st.port = 25555
@@ -242,6 +243,7 @@ elif q1 == "2":
     st.connecting()
     print(st.addr)
     st.s.sendto("connected".encode("utf-8"),st.addr)
-    st.run_fps_cap()
+
+st.run_fps_cap()
 
 
