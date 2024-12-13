@@ -61,6 +61,8 @@ class run():
         self.en_paddle.set_location([0, 350])
         self.screen = turtle.Screen()
         self.plist = [self.my_paddle,self.en_paddle]
+        self.host = ""
+        self.port = 25555
 
     def draw(self):
         for i in self.ballset.ball:
@@ -106,17 +108,14 @@ class run():
         if self.en_paddle.bhp <= 0:
             return self.my_paddle
 
-    def hosting(self):
-        self.host = '192.168.1.101' #Server ip
-        self.port = 25555
-
+    def connecting(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.setblocking(False)
         try:
             self.s.bind((self.host, self.port))
         except OSError:
             print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
-        print("Server Started")
+        self.s.sendto("connected".encode("utf-8"),(self.host,self.port))
+
 
     def desition(self,data,addr):
         if data == "d":
@@ -164,18 +163,21 @@ class run():
     def move_right(self,pad):
         if (pad.location[0] + pad.width/2 + 50) <= self.border.canvas_width:
             pad.set_location([pad.location[0] + 50, pad.location[1]])
+            self.s.sendto("d".encode("utf-8"), self.addr)
 
     def fire(self,pad,di,team,colour):
         mass =(4/3) * math.pi * (5**3) * 2
         b = ball.ball(size=5, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp = 1)
         b.wt = 2
         self.ballset.ball.append(b)
+        self.s.sendto("s".encode("utf-8"), self.addr)
 
     def fire2(self,pad,di,team,colour):
         mass =(4/3) * math.pi * (5**3) * 2
         b = ball.ball(size=10, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp=2)
         b.wt = 2
         self.ballset.ball.append(b)
+        self.s.sendto("w".encode("utf-8"), self.addr)
             
     def run(self):
         turtle.clear()
@@ -189,11 +191,13 @@ class run():
         turtle.update()
     
     def run_fps_cap(self):
-        self.hosting()
         self.turtle_key_my()
         start1 = time.time()
         start2 = time.time()
         print(self.border.canvas_height, self.border.canvas_width)
+        turtle.write(f"waiting for player",font=("Arial", 100, "normal"),align="center")
+        self.recv()
+        self.s.setblocking(False)
         while True:
             end = time.time()
             try:
@@ -211,9 +215,6 @@ class run():
             except TypeError:
                 print("error")
             self.recv()
-            # if threading.active_count() < 2:
-            #     net = threading.Thread(target=self.recv)
-            #     net.start()
         turtle.clear()
         self.my_paddle.clear()
         self.en_paddle.clear()
@@ -225,5 +226,14 @@ class run():
 # num_balls = int(input("Number of balls to simulate: "))
 num_balls = 0
 st = run(num_balls)
+q1 = input("host press 1, join press 2, local press 3 :")
+if q1 == "1":
+    st.host = input("your ipv6: ")
+    st.port = int(input("port : "))
+    st.connecting()
+elif q1 == "2":
+    st.host = input("ip : ")
+    st.port = input("port : ")
+    st.connecting()
 st.run_fps_cap()
 
