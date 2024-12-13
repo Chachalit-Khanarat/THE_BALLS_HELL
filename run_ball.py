@@ -61,8 +61,9 @@ class run():
         self.en_paddle.set_location([0, 350])
         self.screen = turtle.Screen()
         self.plist = [self.my_paddle,self.en_paddle]
-        self.host = ""
+        self.host = "127.0.0.1"
         self.port = 25555
+        self.addr = "127.0.0.1"
 
     def draw(self):
         for i in self.ballset.ball:
@@ -115,7 +116,7 @@ class run():
         except OSError:
             print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
 
-    def desition(self,data,addr):
+    def desition(self,data):
         if data == "d":
             self.move_left(self.en_paddle)
         elif data == "a":
@@ -128,15 +129,16 @@ class run():
 
     def recv(self):
         try:
-            self.data, self.addr = self.s.recvfrom(1024)
-            print(self.addr)
+            self.data, addr = self.s.recvfrom(1024)
+            print(addr, self.addr)
+            if addr != self.addr:
+                return
         except BlockingIOError:
             self.data = 0
             return
-        print(self.data)
         self.data = self.data.decode('utf-8')
         print("From connected user: " + self.data)
-        self.desition(self.data,self.addr)
+        self.desition(self.data)
 
     def turtle_key_my(self):
             self.screen.listen()
@@ -192,7 +194,7 @@ class run():
 
     def wait_player(self):
         turtle.write(f"waiting for player",font=("Arial", 100, "normal"),align="center")
-        self.recv()
+        data, self.addr = self.s.recvfrom(1024)
         self.s.setblocking(False)
     
     def run_fps_cap(self):
@@ -231,8 +233,10 @@ num_balls = 0
 st = run(num_balls)
 q1 = input("host press 1, join press 2, local press 3 :")
 if q1 == "1":
-    st.host = input("your ipv6: ")
-    st.port = int(input("port : "))
+    # st.host = input("your ipv6: ")
+    # st.port = int(input("port : "))
+    st.host = "192.168.1.101"
+    st.port = 25555
     st.connecting()
     st.wait_player()
 
