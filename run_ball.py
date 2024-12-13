@@ -114,8 +114,6 @@ class run():
             self.s.bind((self.host, self.port))
         except OSError:
             print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
-        self.s.sendto("connected".encode("utf-8"),(self.host,self.port))
-
 
     def desition(self,data,addr):
         if data == "d":
@@ -131,7 +129,9 @@ class run():
         try:
             data, addr = self.s.recvfrom(1024)
             self.addr = addr
+            print(addr)
         except BlockingIOError:
+            data = 0
             return
         print(data)
         data = data.decode('utf-8')
@@ -189,14 +189,17 @@ class run():
         self.draw_paddle()
         self.ball_ball_hit()
         turtle.update()
+
+    def wait_player(self):
+        turtle.write(f"waiting for player",font=("Arial", 100, "normal"),align="center")
+        self.recv()
+        self.s.setblocking(False)
     
     def run_fps_cap(self):
         self.turtle_key_my()
         start1 = time.time()
         start2 = time.time()
         print(self.border.canvas_height, self.border.canvas_width)
-        turtle.write(f"waiting for player",font=("Arial", 100, "normal"),align="center")
-        self.recv()
         self.s.setblocking(False)
         while True:
             end = time.time()
@@ -231,9 +234,14 @@ if q1 == "1":
     st.host = input("your ipv6: ")
     st.port = int(input("port : "))
     st.connecting()
+    st.wait_player()
 elif q1 == "2":
-    st.host = input("ip : ")
-    st.port = input("port : ")
+    st.host = "192.168.1.106"
+    st.port = 25555
+    st.addr = ('hongrocker49.thddns.net', 2720) #input("server ip : "), int(input("server port : "))
     st.connecting()
-st.run_fps_cap()
+    print(st.addr)
+    st.s.sendto("connected".encode("utf-8"),st.addr)
+    st.run_fps_cap()
+
 
