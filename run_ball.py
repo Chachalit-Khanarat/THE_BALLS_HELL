@@ -159,12 +159,14 @@ class run():
     def move_left(self,pad):
         if (pad.location[0] - pad.width/2 - 50) >= -self.border.canvas_width:
             pad.set_location([pad.location[0] - 50, pad.location[1]])
-        self.s.sendto("a".encode("utf-8"), self.addr)
+        if pad.team == "b":
+            self.s.sendto("a".encode("utf-8"), self.addr)
 
     # move_left and move_right handlers update paddle positions
     def move_right(self,pad):
         if (pad.location[0] + pad.width/2 + 50) <= self.border.canvas_width:
             pad.set_location([pad.location[0] + 50, pad.location[1]])
+        if pad.team == "b":
             self.s.sendto("d".encode("utf-8"), self.addr)
 
     def fire(self,pad,di,team,colour):
@@ -172,14 +174,16 @@ class run():
         b = ball.ball(size=5, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp = 1)
         b.wt = 2
         self.ballset.ball.append(b)
-        self.s.sendto("s".encode("utf-8"), self.addr)
+        if pad.team == "b":
+            self.s.sendto("s".encode("utf-8"), self.addr)
 
     def fire2(self,pad,di,team,colour):
         mass =(4/3) * math.pi * (5**3) * 2
         b = ball.ball(size=10, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp=2)
         b.wt = 2
         self.ballset.ball.append(b)
-        self.s.sendto("w".encode("utf-8"), self.addr)
+        if pad.team == "b":
+            self.s.sendto("w".encode("utf-8"), self.addr)
             
     def run(self):
         turtle.clear()
@@ -202,7 +206,10 @@ class run():
         start1 = time.time()
         start2 = time.time()
         print(self.border.canvas_height, self.border.canvas_width)
-        self.s.setblocking(False)
+        try:
+            self.s.setblocking(False)
+        except AttributeError:
+            pass
         while True:
             end = time.time()
             try:
@@ -219,7 +226,10 @@ class run():
                     start1 = time.time()
             except TypeError:
                 print("error")
-            self.recv()
+            try:
+                self.recv()
+            except AttributeError:
+                pass
         turtle.clear()
         self.my_paddle.clear()
         self.en_paddle.clear()
