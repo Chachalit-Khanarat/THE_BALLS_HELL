@@ -43,12 +43,11 @@ class border():
 
 
 class run():
-    def __init__(self, num_ball):
+    def __init__(self):
         turtle.speed(0)
         turtle.tracer(0)
         turtle.hideturtle()
         turtle.colormode(255)
-        self.num = num_ball
         self.ballset =  balldb()
         self.dt = 0.5
         self.border = border()
@@ -64,6 +63,36 @@ class run():
         self.host = "127.0.0.1"
         self.port = 25555
         self.addr = "127.0.0.1"
+        self.mode_selecter()
+
+    def mode_selecter(self):
+        q1 = turtle.textinput(title="THE BALL HELL",prompt="host press 1, join press 2, local press 3 : ")
+        match q1:
+            case "1":
+                # self.host = input("your ipv4: ")
+                # self.port = int(input("port : "))
+                self.host = turtle.textinput(title="HOST",prompt="IP")
+                self.port = turtle.textinput(title="HOST",prompt="PORT")
+                self.host = "192.168.1.101"
+                self.port = 25555
+                self.connecting()
+                self.wait_player()
+            case "2":
+                self.host = "192.168.1.101"
+                self.port = 25555
+                self.addr = ('hongrocker49.thddns.net', 2720) #input("server ip : "), int(input("server port : "))
+                self.connecting()
+                print(sep=self.addr)
+                self.s.sendto("connected".encode("utf-8"),self.addr)
+            case "3":
+                p1 = turtle.textinput(title="CHARACTER SELECTION P1",prompt="n or s :")
+                p2 = turtle.textinput(title="CHARACTER SELECTION P2",prompt="n or s :")
+                self.my_paddle.type = p1
+                self.en_paddle.type = p2
+                self.turtle_key_my()
+                self.turtle_key_en()
+
+
 
     def draw(self):
         for i in self.ballset.ball:
@@ -72,7 +101,7 @@ class run():
             i.move_ball(self.dt)
             if i.bhp <= 0:
                 self.ballset.ball.pop(self.ballset.ball.index(i))
-    
+
     def draw_paddle(self):
         for i in self.plist:
             if i.bhp > 0:
@@ -114,7 +143,8 @@ class run():
         try:
             self.s.bind((self.host, self.port))
         except OSError:
-            print("Only one usage of each socket address (protocol/network address/port) is normally permitted")
+            print("Only one usage of each socket address",
+                  "protocol/network address/port) is normally permitted")
 
     def desition(self,data):
         if data == "d":
@@ -129,10 +159,7 @@ class run():
 
     def recv(self):
         try:
-            self.data, addr = self.s.recvfrom(1024)
-            print(addr, self.addr)
-            if addr != self.addr:
-                return
+            self.data, self.addr = self.s.recvfrom(1024)
         except BlockingIOError:
             self.data = 0
             return
@@ -141,50 +168,87 @@ class run():
         self.desition(self.data)
 
     def turtle_key_my(self):
-            self.screen.listen()
-            self.screen.onkey(lambda : self.move_left(self.my_paddle), "a")
-            self.screen.onkey(lambda :self.move_right(self.my_paddle), "d")
-            self.screen.onkey(lambda :self.fire(self.my_paddle,1,"b",(0,255,200)), "s")
-            self.screen.onkey(lambda :self.fire2(self.my_paddle,1,"b",(0,255,200)), "w")
-            self.screen.onkey(self.recv, " ")
-    
+        self.screen.listen()
+        self.screen.onkey(lambda : self.move_left(self.my_paddle), "a")
+        self.screen.onkey(lambda :self.move_right(self.my_paddle), "d")
+        self.screen.onkey(lambda :self.fire(self.my_paddle,1), "s")
+        self.screen.onkey(lambda :self.fire2(self.my_paddle,1), "w")
+
     def turtle_key_en(self):
-            self.screen.onkey(lambda :self.move_left(self.en_paddle), "Left")
-            self.screen.onkey(lambda :self.move_right(self.en_paddle), "Right")
-            self.screen.onkey(lambda :self.fire(self.en_paddle,-1,"r",(255,20,20)), "Down")
-            self.screen.onkey(lambda :self.fire2(self.en_paddle,-1,"r",(255,20,20)), "Up")
+        self.screen.listen()
+        self.screen.onkey(lambda :self.move_left(self.en_paddle), "Left")
+        self.screen.onkey(lambda :self.move_right(self.en_paddle), "Right")
+        self.screen.onkey(lambda :self.fire(self.en_paddle,-1), "Down")
+        self.screen.onkey(lambda :self.fire2(self.en_paddle,-1), "Up")
 
+    def drawui(self):
+        enl = [-250,420]
+        myl = [-250,-450]
+        turtle.color((0,0,0))
+        turtle.penup()
+        turtle.goto(enl)
+        turtle.pendown()
+        turtle.write(f"HP : {self.en_paddle.bhp}",font=("Arial", 20, "normal"),align="center")
+        turtle.penup()
+        turtle.goto(myl)
+        turtle.pendown()
+        turtle.write(f"HP : {self.my_paddle.bhp}",font=("Arial", 20, "normal"),align="center")
 
-    # move_left and move_right handlers update paddle positions
     def move_left(self,pad):
         if (pad.location[0] - pad.width/2 - 50) >= -self.border.canvas_width:
             pad.set_location([pad.location[0] - 50, pad.location[1]])
-        if pad.team == "b":
-            self.s.sendto("a".encode("utf-8"), self.addr)
+        try:
+            if pad.team == "b":
+                self.s.sendto("a".encode("utf-8"), self.addr)
+        except AttributeError:
+            pass
 
-    # move_left and move_right handlers update paddle positions
     def move_right(self,pad):
         if (pad.location[0] + pad.width/2 + 50) <= self.border.canvas_width:
             pad.set_location([pad.location[0] + 50, pad.location[1]])
-        if pad.team == "b":
-            self.s.sendto("d".encode("utf-8"), self.addr)
+        try:
+            if pad.team == "b":
+                self.s.sendto("d".encode("utf-8"), self.addr)
+        except AttributeError:
+            pass
 
-    def fire(self,pad,di,team,colour):
-        mass =(4/3) * math.pi * (5**3) * 2
-        b = ball.ball(size=5, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp = 1)
-        b.wt = 2
+    def fire(self,pad,di):
+        b = ball.ball(size=5, x=pad.location[0], y=pad.location[1], \
+            vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp = 5)
         self.ballset.ball.append(b)
-        if pad.team == "b":
-            self.s.sendto("s".encode("utf-8"), self.addr)
+        try:
+            if pad.team == "b":
+                self.s.sendto("s".encode("utf-8"), self.addr)
+        except AttributeError:
+            pass
 
-    def fire2(self,pad,di,team,colour):
-        mass =(4/3) * math.pi * (5**3) * 2
-        b = ball.ball(size=10, x=pad.location[0], y=pad.location[1], vx=0, vy=di*20, color=colour, mass=mass, team=team,bhp=2)
-        b.wt = 2
-        self.ballset.ball.append(b)
-        if pad.team == "b":
-            self.s.sendto("w".encode("utf-8"), self.addr)
-            
+    def fire2(self,pad,di):
+        now = time.time()
+        if now - self.firecooldown <= 5:
+            return
+        match pad.type:
+            case "n":
+                b = ball.ball(size=10, x=pad.location[0], y=pad.location[1],\
+                    vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp=10)
+                self.ballset.ball.append(b)
+                try:
+                    if pad.team == "b":
+                        self.s.sendto("w".encode("utf-8"), self.addr)
+                except AttributeError:
+                    pass
+                self.firecooldown = time.time()
+            case "s":
+                for i in range(-2,3):
+                    b = ball.ball(size=3, x=pad.location[0], y=pad.location[1],\
+                        vx=2*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=2)
+                    self.ballset.ball.append(b)
+                    try:
+                        if pad.team == "b":
+                            self.s.sendto("w".encode("utf-8"), self.addr)
+                    except AttributeError:
+                        pass
+                self.firecooldown = time.time()               
+
     def run(self):
         turtle.clear()
         self.my_paddle.clear()
@@ -193,19 +257,28 @@ class run():
         self.border.draw_border()
         self.draw()
         self.draw_paddle()
+        self.drawui()
         self.ball_ball_hit()
         turtle.update()
 
     def wait_player(self):
-        turtle.write(f"waiting for player",font=("Arial", 100, "normal"),align="center")
+        turtle.write(f"waiting for player",font=("Papyrus", 100, "normal"),align="center")
         data, self.addr = self.s.recvfrom(1024)
         self.s.setblocking(False)
-    
-    def run_fps_cap(self):
+
+    def type_selecter(self):
+        turtle.write(f"Select your Shape",font=("Arial", 100, "normal"),align="center")
+        p1 = turtle.textinput(title="CHARACTER SELECTION P1",prompt="n or s :")
+        self.my_paddle.type = p1
         self.turtle_key_my()
+        self.s.sendto(p1.encode("utf-8"), self.addr)
+
+
+    def run_fps_cap(self):
         start1 = time.time()
         start2 = time.time()
         print(self.border.canvas_height, self.border.canvas_width)
+        self.firecooldown = time.time()
         try:
             self.s.setblocking(False)
         except AttributeError:
@@ -230,34 +303,22 @@ class run():
                 self.recv()
             except AttributeError:
                 pass
+        self.end_screen(t)
+
+    def end_screen(self,t):
         turtle.clear()
         self.my_paddle.clear()
         self.en_paddle.clear()
-        turtle.goto(0,-150)
-        turtle.write(f"{t} ! WIN !",font=("Arial", 100, "normal"),align="center")
+        turtle.penup()
+        turtle.goto(0,-100)
+        turtle.color(t.color)
+        turtle.pendown()
+        if t.team == "b":
+            turtle.write(f"YOU ! WIN !",font=("Arial", 100, "normal"),align="center")
+        else :
+            turtle.write(f"ENEMY ! WIN !",font=("Arial", 100, "normal"),align="center")
         turtle.done()
-        c.close()
 
-# num_balls = int(input("Number of balls to simulate: "))
-num_balls = 0
-st = run(num_balls)
-q1 = input("host press 1, join press 2, local press 3 :")
-if q1 == "1":
-    # st.host = input("your ipv6: ")
-    # st.port = int(input("port : "))
-    st.host = "192.168.1.101"
-    st.port = 25555
-    st.connecting()
-    st.wait_player()
 
-elif q1 == "2":
-    st.host = "192.168.1.106"
-    st.port = 25555
-    st.addr = ('hongrocker49.thddns.net', 2720) #input("server ip : "), int(input("server port : "))
-    st.connecting()
-    print(st.addr)
-    st.s.sendto("connected".encode("utf-8"),st.addr)
-
+st = run()
 st.run_fps_cap()
-
-
