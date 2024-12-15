@@ -12,6 +12,7 @@ class Paddle:
         self.head = head
         self.bhp = bhp
         self.type = type
+        self.time = 0
 
     def set_location(self, location):
         self.location = location
@@ -49,7 +50,6 @@ class Paddle:
         match self.type:
             case "n":
                 self.bhp = 15
-
             case "s":
                 self.bhp = 30
 

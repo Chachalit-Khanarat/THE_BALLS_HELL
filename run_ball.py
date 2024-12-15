@@ -73,7 +73,10 @@ class run():
             case "1":
                 self.host = turtle.textinput(title="HOST",prompt="IP")
                 self.port = turtle.textinput(title="HOST",prompt="PORT")
-                self.host = "192.168.1.101"
+                # Put your ipv4 by check it in cmd and type ipconfig
+                self.host = ""
+                # Can be anyport you want but you can't use the same one you already use
+                # default 25555
                 self.port = 25555
                 self.connecting()
                 self.wait_player()
@@ -81,12 +84,14 @@ class run():
                 self.wait_player()
                 self.turtle_key_my()
             case "2":
-                self.host = "192.168.1.101" # Put your ipv4 by check it in cmd and type ipconfig
+                # Put your ipv4 by check it in cmd and type ipconfig
+                self.host = "" 
+                # Can be anyport you want but you can't use the same one you already use
+                # default 25555
                 self.port = 25555
+                # This to put on the server ip adress
                 self.addr = turtle.textinput(title="JOIN",prompt="Host IP"),turtle.textinput(title="JOIN",prompt="HOST PORT")
-                self.addr = ('hongrocker49.thddns.net', 2720)
                 self.connecting()
-                print(self.addr)
                 self.s.sendto("connected".encode("utf-8"),self.addr)
                 self.wait_player()
                 self.type_selecter()
@@ -171,7 +176,7 @@ class run():
             self.data = 0
             return
         self.data = self.data.decode('utf-8')
-        print("From connected user: " + self.data)
+        # print("From connected user: " + self.data)
         self.desition(self.data)
 
     def turtle_key_my(self):
@@ -220,23 +225,10 @@ class run():
             pass
 
     def fire(self,pad,di):
-        b = ball.ball(size=5, x=pad.location[0], y=pad.location[1], \
-            vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp = 5)
-        self.ballset.ball.append(b)
-        try:
-            if pad.team == "b":
-                self.s.sendto("s".encode("utf-8"), self.addr)
-        except AttributeError:
-            pass
-
-    def fire2(self,pad,di):
-        now = time.time()
-        if now - self.firecooldown <= 5:
-            return
         match pad.type:
             case "n":
-                b = ball.ball(size=10, x=pad.location[0], y=pad.location[1],\
-                    vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp=10)
+                b = ball.ball(size=5, x=pad.location[0], y=pad.location[1],\
+                    vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp=5)
                 self.ballset.ball.append(b)
                 try:
                     if pad.team == "b":
@@ -245,16 +237,41 @@ class run():
                     pass
                 self.firecooldown = time.time()
             case "s":
-                for i in range(-2,3):
-                    b = ball.ball(size=3, x=pad.location[0], y=pad.location[1],\
-                        vx=2*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=2)
+                for i in range(-1,2):
+                    b = ball.ball(size=1, x=pad.location[0], y=pad.location[1],\
+                        vx=1*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=1)
                     self.ballset.ball.append(b)
                     try:
                         if pad.team == "b":
                             self.s.sendto("w".encode("utf-8"), self.addr)
                     except AttributeError:
                         pass
-                self.firecooldown = time.time()               
+
+    def fire2(self,pad,di):
+        now = time.time()
+        if now - pad.time <= 5:
+            return
+        match pad.type:
+            case "n":
+                b = ball.ball(size=15, x=pad.location[0], y=pad.location[1],\
+                    vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp=15)
+                self.ballset.ball.append(b)
+                try:
+                    if pad.team == "b":
+                        self.s.sendto("w".encode("utf-8"), self.addr)
+                except AttributeError:
+                    pass
+            case "s":
+                for i in range(-2,3):
+                    b = ball.ball(size=5, x=pad.location[0], y=pad.location[1],\
+                        vx=2*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=5)
+                    self.ballset.ball.append(b)
+                    try:
+                        if pad.team == "b":
+                            self.s.sendto("w".encode("utf-8"), self.addr)
+                    except AttributeError:
+                        pass
+        pad.time = time.time()               
 
     def run(self):
         turtle.clear()
@@ -272,7 +289,7 @@ class run():
         turtle.write(f"waiting for player",font=("Times New Roman", 100, "normal"),align="center")
         data, self.addr = self.s.recvfrom(1024)
         self.en_paddle.type = data.decode("utf-8")
-        print(data)
+        # print(data)
         turtle.clear()
 
     def type_selecter(self):
@@ -285,8 +302,9 @@ class run():
     def run_fps_cap(self):
         start1 = time.time()
         start2 = time.time()
-        print(self.border.canvas_height, self.border.canvas_width)
-        self.firecooldown = time.time()
+        # print(self.border.canvas_height, self.border.canvas_width)
+        self.en_paddle.time = time.time()
+        self.my_paddle.time = time.time()
         try:
             self.s.setblocking(False)
         except AttributeError:
@@ -301,7 +319,7 @@ class run():
                         break
                     self.frame += 1
                     if abs(start2 - end) >= 1:
-                        print(self.frame)
+                        # print(self.frame)
                         self.frame = 0
                         start2 = time.time()
                     start1 = time.time()
