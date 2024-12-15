@@ -76,7 +76,7 @@ class run():
                 self.wait_player()
                 self.turtle_key_my()
             case "2":
-                self.addr = turtle.textinput(title="JOIN",prompt="Host IP"),turtle.textinput(title="JOIN",prompt="HOST PORT")
+                self.addr = turtle.textinput(title="JOIN",prompt="Host IP"),int(turtle.textinput(title="JOIN",prompt="HOST PORT"))
                 self.connecting()
                 self.s.sendto("connected".encode("utf-8"),self.addr)
                 self.wait_player()
