@@ -216,22 +216,16 @@ class run():
                 b = ball.ball(size=5, x=pad.location[0], y=pad.location[1],\
                     vx=0, vy=di*20, color=pad.color, mass=5, team=pad.team,bhp=5)
                 self.ballset.ball.append(b)
-                try:
-                    if pad.team == "b":
-                        self.s.sendto("w".encode("utf-8"), self.addr)
-                except AttributeError:
-                    pass
-                self.firecooldown = time.time()
             case "s":
                 for i in range(-1,2):
                     b = ball.ball(size=1, x=pad.location[0], y=pad.location[1],\
                         vx=1*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=1)
                     self.ballset.ball.append(b)
-                    try:
-                        if pad.team == "b":
-                            self.s.sendto("w".encode("utf-8"), self.addr)
-                    except AttributeError:
-                        pass
+        try:
+            if pad.team == "b":
+                self.s.sendto("s".encode("utf-8"), self.addr)
+        except AttributeError:
+            pass
 
     def fire2(self,pad,di):
         now = time.time()
@@ -252,12 +246,12 @@ class run():
                     b = ball.ball(size=5, x=pad.location[0], y=pad.location[1],\
                         vx=2*i, vy=di*10, color=pad.color, mass=5, team=pad.team,bhp=5)
                     self.ballset.ball.append(b)
-                    try:
-                        if pad.team == "b":
-                            self.s.sendto("w".encode("utf-8"), self.addr)
-                    except AttributeError:
-                        pass
-        pad.time = time.time()               
+        pad.time = time.time()         
+        try:
+            if pad.team == "b":
+                self.s.sendto("w".encode("utf-8"), self.addr)
+        except AttributeError:
+            pass      
 
     def run(self):
         turtle.clear()

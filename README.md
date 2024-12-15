@@ -56,6 +56,12 @@ Here is the installation guide.
         - Click Details next to the network you're connected to
         - Scroll down to see your Mac's local IP address
 
+## Offline Multiplayer Setup
+- run play.py and put in number 3 and press OK
+- select your shape first for player 1 "n" for triangle "s" for square and then press OK
+- do the same thing for player 2
+- use the control layout as state above
+
 ## Online Multiplayer Setup
 You can chose between portforwarding or use a local network(same wifi connection)
 - Portforward
