@@ -11,7 +11,6 @@ import socket
 class balldb():
     def __init__(self):
         self.ball = []
-        self.border = border()
 
 
 class border():
@@ -45,7 +44,7 @@ class border():
 
 
 class run():
-    def __init__(self):
+    def __init__(self, host = "127.0.0.1", port = 25556):
         turtle.speed(0)
         turtle.tracer(0)
         turtle.hideturtle()
@@ -62,8 +61,8 @@ class run():
         self.en_paddle.set_location([0, 350])
         self.screen = turtle.Screen()
         self.plist = [self.my_paddle,self.en_paddle]
-        self.host = "127.0.0.1"
-        self.port = 25555
+        self.host = host
+        self.port = port
         self.addr = "127.0.0.1"
         self.mode_selecter()
 
@@ -71,25 +70,12 @@ class run():
         q1 = turtle.textinput(title="THE BALL HELL",prompt="host press 1, join press 2, local press 3 : ")
         match q1:
             case "1":
-                self.host = turtle.textinput(title="HOST",prompt="IP")
-                self.port = turtle.textinput(title="HOST",prompt="PORT")
-                # Put your ipv4 by check it in cmd and type ipconfig
-                self.host = ""
-                # Can be anyport you want but you can't use the same one you already use
-                # default 25555
-                self.port = 25555
                 self.connecting()
                 self.wait_player()
                 self.type_selecter()
                 self.wait_player()
                 self.turtle_key_my()
             case "2":
-                # Put your ipv4 by check it in cmd and type ipconfig
-                self.host = "" 
-                # Can be anyport you want but you can't use the same one you already use
-                # default 25555
-                self.port = 25555
-                # This to put on the server ip adress
                 self.addr = turtle.textinput(title="JOIN",prompt="Host IP"),turtle.textinput(title="JOIN",prompt="HOST PORT")
                 self.connecting()
                 self.s.sendto("connected".encode("utf-8"),self.addr)

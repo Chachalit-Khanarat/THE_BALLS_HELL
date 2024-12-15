@@ -10,7 +10,6 @@ class ball():
         self.vx = vx
         self.vy = vy
         self.mass = mass
-        self.wt = bhp
         self.team = team
         self.bhp = bhp
 
