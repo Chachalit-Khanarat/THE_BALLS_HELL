@@ -7,10 +7,12 @@ import paddle
 import threading
 import socket
 
+
 class balldb():
     def __init__(self):
         self.ball = []
         self.border = border()
+
 
 class border():
     def __init__(self):
@@ -69,21 +71,26 @@ class run():
         q1 = turtle.textinput(title="THE BALL HELL",prompt="host press 1, join press 2, local press 3 : ")
         match q1:
             case "1":
-                # self.host = input("your ipv4: ")
-                # self.port = int(input("port : "))
                 self.host = turtle.textinput(title="HOST",prompt="IP")
                 self.port = turtle.textinput(title="HOST",prompt="PORT")
                 self.host = "192.168.1.101"
                 self.port = 25555
                 self.connecting()
                 self.wait_player()
+                self.type_selecter()
+                self.wait_player()
+                self.turtle_key_my()
             case "2":
-                self.host = "192.168.1.101"
+                self.host = "192.168.1.101" # Put your ipv4 by check it in cmd and type ipconfig
                 self.port = 25555
-                self.addr = ('hongrocker49.thddns.net', 2720) #input("server ip : "), int(input("server port : "))
+                self.addr = turtle.textinput(title="JOIN",prompt="Host IP"),turtle.textinput(title="JOIN",prompt="HOST PORT")
+                self.addr = ('hongrocker49.thddns.net', 2720)
                 self.connecting()
-                print(sep=self.addr)
+                print(self.addr)
                 self.s.sendto("connected".encode("utf-8"),self.addr)
+                self.wait_player()
+                self.type_selecter()
+                self.turtle_key_my()
             case "3":
                 p1 = turtle.textinput(title="CHARACTER SELECTION P1",prompt="n or s :")
                 p2 = turtle.textinput(title="CHARACTER SELECTION P2",prompt="n or s :")
@@ -91,8 +98,8 @@ class run():
                 self.en_paddle.type = p2
                 self.turtle_key_my()
                 self.turtle_key_en()
-
-
+        self.my_paddle.correct_type_stat()
+        self.en_paddle.correct_type_stat()
 
     def draw(self):
         for i in self.ballset.ball:
@@ -152,9 +159,9 @@ class run():
         elif data == "a":
             self.move_right(self.en_paddle)
         elif data == "s":
-            self.fire(self.en_paddle,-1,"r",(255,20,20))
+            self.fire(self.en_paddle,-1)
         elif data == "w":
-            self.fire2(self.en_paddle,-1,"r",(255,20,20))
+            self.fire2(self.en_paddle,-1)
         self.data = 0
 
     def recv(self):
@@ -262,17 +269,18 @@ class run():
         turtle.update()
 
     def wait_player(self):
-        turtle.write(f"waiting for player",font=("Papyrus", 100, "normal"),align="center")
+        turtle.write(f"waiting for player",font=("Times New Roman", 100, "normal"),align="center")
         data, self.addr = self.s.recvfrom(1024)
-        self.s.setblocking(False)
+        self.en_paddle.type = data.decode("utf-8")
+        print(data)
+        turtle.clear()
 
     def type_selecter(self):
-        turtle.write(f"Select your Shape",font=("Arial", 100, "normal"),align="center")
+        turtle.write(f"Select your Shape",font=("Times New Roman", 100, "normal"),align="center")
         p1 = turtle.textinput(title="CHARACTER SELECTION P1",prompt="n or s :")
         self.my_paddle.type = p1
-        self.turtle_key_my()
         self.s.sendto(p1.encode("utf-8"), self.addr)
-
+        turtle.clear()
 
     def run_fps_cap(self):
         start1 = time.time()
@@ -314,11 +322,7 @@ class run():
         turtle.color(t.color)
         turtle.pendown()
         if t.team == "b":
-            turtle.write(f"YOU ! WIN !",font=("Arial", 100, "normal"),align="center")
+            turtle.write(f"YOU ! WIN !",font=("Times New Roman", 100, "normal"),align="center")
         else :
-            turtle.write(f"ENEMY ! WIN !",font=("Arial", 100, "normal"),align="center")
+            turtle.write(f"ENEMY ! WIN !",font=("ATimes New Romanrial", 100, "normal"),align="center")
         turtle.done()
-
-
-st = run()
-st.run_fps_cap()
